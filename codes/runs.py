@@ -229,6 +229,8 @@ def main(args):
     logging.info('adversarial_temperature = %f' % args.adversarial_temperature)
 
     if args.do_train:
+        logging.info('learning_rate = %d' % current_learning_rate)
+        
         training_logs = []
         loss_file = {'positive_sample_loss': [], 'negative_sample_loss': [], 'loss': []}
 
