@@ -317,7 +317,7 @@ class HAKE(KGEModel):
             b=self.embedding_range.item()
         )
 
-        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim * 2))
+        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim * 3))
         nn.init.uniform_(
             tensor=self.relation_embedding,
             a=-self.embedding_range.item(),
@@ -328,9 +328,9 @@ class HAKE(KGEModel):
             tensor=self.relation_embedding[:, hidden_dim:2 * hidden_dim]
         )
 
-        #nn.init.zeros_(
-         #   tensor=self.relation_embedding[:, 2 * hidden_dim:3 * hidden_dim]
-        #)
+        nn.init.zeros_(
+            tensor=self.relation_embedding[:, 2 * hidden_dim:3 * hidden_dim]
+        )
 
         self.phase_weight = nn.Parameter(torch.Tensor([[phase_weight * self.embedding_range.item()]]))
         self.modulus_weight = nn.Parameter(torch.Tensor([[modulus_weight]]))
@@ -340,7 +340,7 @@ class HAKE(KGEModel):
 
     def func(self, head, rel, tail, batch_type):
         phase_head, mod_head = torch.chunk(head, 2, dim=2)
-        phase_relation, mod_relation = torch.chunk(rel, 2, dim=2)
+        phase_relation, mod_relation, bias_relation = torch.chunk(rel, 3, dim=2)
         phase_tail, mod_tail = torch.chunk(tail, 2, dim=2)
 
         phase_head = phase_head / (self.embedding_range.item() / self.pi)
@@ -353,12 +353,11 @@ class HAKE(KGEModel):
             phase_score = (phase_head + phase_relation) - phase_tail
 
         mod_relation = torch.abs(mod_relation)
-        #bias_relation = torch.clamp(bias_relation, max=1)
-        #indicator = (bias_relation < -mod_relation)
-        #bias_relation[indicator] = -mod_relation[indicator]
+        bias_relation = torch.clamp(bias_relation, max=1)
+        indicator = (bias_relation < -mod_relation)
+        bias_relation[indicator] = -mod_relation[indicator]
 
-        #r_score = mod_head * (mod_relation + bias_relation) - mod_tail * (1 - bias_relation)
-        r_score = mod_head * mod_relation - mod_tail
+        r_score = mod_head * (mod_relation + bias_relation) - mod_tail * (1 - bias_relation)
 
         phase_score = torch.sum(torch.abs(torch.sin(phase_score / 2)), dim=2) * self.phase_weight
         r_score = torch.norm(r_score, dim=2) * self.modulus_weight
