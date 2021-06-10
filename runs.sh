@@ -45,8 +45,7 @@ echo "Start Training......"
             -lr $LEARNING_RATE --max_steps $MAX_STEPS \
             -save $SAVE --test_batch_size $TEST_BATCH_SIZE \
             -mw $MODULUS_WEIGHT -pw $PHASE_WEIGHT
-     elif [ $MODEL == "ModE" ]
-     then
+     else
          CUDA_VISIBLE_DEVICES=$GPU_DEVICE python -u $CODE_PATH/runs.py --do_train \
             --do_valid \
             --do_test \
