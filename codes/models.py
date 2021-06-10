@@ -405,7 +405,7 @@ class RotatE(KGEModel):
 
         #Make phases of relations uniformly distributed in [-pi, pi]
 
-        phase_relation = rel/(self.embedding_range.item()/pi)
+        phase_relation = rel/(self.embedding_range.item()/self.pi)
 
         re_relation = torch.cos(phase_relation)
         im_relation = torch.sin(phase_relation)
