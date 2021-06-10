@@ -163,6 +163,8 @@ def main(args):
         kge_model = ModE(num_entity, num_relation, args.hidden_dim, args.gamma)
     elif args.model == 'TransE':
         kge_model = TransE(num_entity, num_relation, args.hidden_dim, args.gamma)
+    elif args.model == 'UM':
+        kge_model = UM(num_entity, num_relation, args.hidden_dim, args.gamma)
     elif args.model == 'RotatE':
         kge_model = RotatE(num_entity, num_relation, args.hidden_dim, args.gamma)
     elif args.model == 'HAKE':
