@@ -469,3 +469,37 @@ class TransE(KGEModel):
 
         return self.gamma.item() - torch.norm(score, p=1, dim=2)
     
+class UM(KGEModel):
+    def __init__(self, num_entity, num_relation, hidden_dim, gamma):
+        super(TransE, self).__init__()
+        self.num_entity = num_entity
+        self.num_relation = num_relation
+        self.hidden_dim = hidden_dim
+        self.epsilon = 2.0
+
+        self.gamma = nn.Parameter(
+            torch.Tensor([gamma]),
+            requires_grad=False
+        )
+
+        self.embedding_range = nn.Parameter(
+            torch.Tensor([(self.gamma.item() + self.epsilon) / hidden_dim]),
+            requires_grad=False
+        )
+
+        self.entity_embedding = nn.Parameter(torch.zeros(num_entity, hidden_dim))
+        nn.init.uniform_(
+            tensor=self.entity_embedding,
+            a=-self.embedding_range.item(),
+            b=self.embedding_range.item()
+        )
+
+        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim), requires_grad=False)
+
+
+    def func(self, head, rel, tail, batch_type):
+        score = head - tail
+        
+        score = torch.norm(score, p=1, dim=2)
+
+        return self.gamma.item() - score*score
