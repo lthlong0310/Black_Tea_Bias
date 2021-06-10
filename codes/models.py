@@ -471,7 +471,7 @@ class TransE(KGEModel):
     
 class UM(KGEModel):
     def __init__(self, num_entity, num_relation, hidden_dim, gamma):
-        super(TransE, self).__init__()
+        super(UM, self).__init__()
         self.num_entity = num_entity
         self.num_relation = num_relation
         self.hidden_dim = hidden_dim
