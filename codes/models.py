@@ -389,7 +389,7 @@ class RotatE(KGEModel):
             b=self.embedding_range.item()
         )
 
-        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim * 2))
+        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim))
         nn.init.uniform_(
             tensor=self.relation_embedding,
             a=-self.embedding_range.item(),
