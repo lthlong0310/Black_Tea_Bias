@@ -405,7 +405,7 @@ class RotatE(KGEModel):
 
         #Make phases of relations uniformly distributed in [-pi, pi]
 
-        phase_relation = relation/(self.embedding_range.item()/pi)
+        phase_relation = rel/(self.embedding_range.item()/pi)
 
         re_relation = torch.cos(phase_relation)
         im_relation = torch.sin(phase_relation)
@@ -461,9 +461,9 @@ class TransE(KGEModel):
 
     def func(self, head, rel, tail, batch_type):
         if batch_type == BatchType.HEAD_BATCH:
-            score = head + (relation - tail)
+            score = head + (rel - tail)
         else:
-            score = (head + relation) - tail
+            score = (head + rel) - tail
 
         return self.gamma.item() - torch.norm(score, p=1, dim=2)
     
