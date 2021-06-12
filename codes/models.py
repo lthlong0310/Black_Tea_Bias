@@ -498,6 +498,6 @@ class UM(KGEModel):
     def func(self, head, rel, tail, batch_type):
         score = head - tail
         
-        score = torch.norm(score, p=1, dim=2)
+        score = torch.norm(score, p=2, dim=2)
 
         return self.gamma.item() - score*score
