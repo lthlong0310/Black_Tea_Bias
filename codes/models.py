@@ -458,7 +458,7 @@ class TransE(KGEModel):
         else:
             score = (head + rel) - tail
 
-        return self.gamma.item() - torch.norm(score, p=1, dim=2)
+        return self.gamma.item() - torch.norm(score, p=2, dim=2)
     
     def normalize_embedding(self):
         self.entity_embedding.data.copy_(torch.renorm(input=self.entity_embedding.detach().cpu(),
