@@ -39,6 +39,10 @@ class KGEModel(nn.Module, ABC):
             tail: [batch_size, negative_sample_size, hidden_dim]
         """
         ...
+       
+    @abstractmethod
+    def normalize_embedding(self):
+        ...
 
     def forward(self, sample, batch_type=BatchType.SINGLE):
         """
@@ -141,6 +145,8 @@ class KGEModel(nn.Module, ABC):
         positive_sample = positive_sample.cuda()
         negative_sample = negative_sample.cuda()
         subsampling_weight = subsampling_weight.cuda()
+        
+        model.normalize_embedding()
 
         # negative scores
         negative_score = model((positive_sample, negative_sample), batch_type=batch_type)
@@ -252,44 +258,9 @@ class KGEModel(nn.Module, ABC):
         metrics = {}
         for metric in logs[0].keys():
             metrics[metric] = sum([log[metric] for log in logs]) / len(logs)
-
+           
         return metrics
 
-
-class ModE(KGEModel):
-    def __init__(self, num_entity, num_relation, hidden_dim, gamma):
-        super(ModE, self).__init__()
-        self.num_entity = num_entity
-        self.num_relation = num_relation
-        self.hidden_dim = hidden_dim
-        self.epsilon = 2.0
-
-        self.gamma = nn.Parameter(
-            torch.Tensor([gamma]),
-            requires_grad=False
-        )
-
-        self.embedding_range = nn.Parameter(
-            torch.Tensor([(self.gamma.item() + self.epsilon) / hidden_dim]),
-            requires_grad=False
-        )
-
-        self.entity_embedding = nn.Parameter(torch.zeros(num_entity, hidden_dim))
-        nn.init.uniform_(
-            tensor=self.entity_embedding,
-            a=-self.embedding_range.item(),
-            b=self.embedding_range.item()
-        )
-
-        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim))
-        nn.init.uniform_(
-            tensor=self.relation_embedding,
-            a=-self.embedding_range.item(),
-            b=self.embedding_range.item()
-        )
-
-    def func(self, head, rel, tail, batch_type):
-        return self.gamma.item() - torch.norm(head * rel - tail, p=1, dim=2)
 
 
 class HAKE(KGEModel):
@@ -364,6 +335,17 @@ class HAKE(KGEModel):
 
         return self.gamma.item() - (phase_score + r_score)
     
+    def normalize_embedding(self):
+        self.entity_embedding.data.copy_(torch.renorm(input=self.entity_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
+        
+        self.relation_embedding.data.copy_(torch.renorm(input=self.relation_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
+    
 class RotatE(KGEModel):
     def __init__(self, num_entity, num_relation, hidden_dim, gamma):
         super(RotatE, self).__init__()
@@ -426,6 +408,17 @@ class RotatE(KGEModel):
 
         return self.gamma.item() - score.sum(dim = 2)
     
+    def normalize_embedding(self):
+        self.entity_embedding.data.copy_(torch.renorm(input=self.entity_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
+        
+        self.relation_embedding.data.copy_(torch.renorm(input=self.relation_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
+    
 class TransE(KGEModel):
     def __init__(self, num_entity, num_relation, hidden_dim, gamma):
         super(TransE, self).__init__()
@@ -467,37 +460,14 @@ class TransE(KGEModel):
 
         return self.gamma.item() - torch.norm(score, p=1, dim=2)
     
-class UM(KGEModel):
-    def __init__(self, num_entity, num_relation, hidden_dim, gamma):
-        super(UM, self).__init__()
-        self.num_entity = num_entity
-        self.num_relation = num_relation
-        self.hidden_dim = hidden_dim
-        self.epsilon = 2.0
-
-        self.gamma = nn.Parameter(
-            torch.Tensor([gamma]),
-            requires_grad=False
-        )
-
-        self.embedding_range = nn.Parameter(
-            torch.Tensor([(self.gamma.item() + self.epsilon) / hidden_dim]),
-            requires_grad=False
-        )
-
-        self.entity_embedding = nn.Parameter(torch.zeros(num_entity, hidden_dim))
-        nn.init.uniform_(
-            tensor=self.entity_embedding,
-            a=-self.embedding_range.item(),
-            b=self.embedding_range.item()
-        )
-
-        self.relation_embedding = nn.Parameter(torch.zeros(num_relation, hidden_dim), requires_grad=False)
-
-
-    def func(self, head, rel, tail, batch_type):
-        score = head - tail
+    def normalize_embedding(self):
+        self.entity_embedding.data.copy_(torch.renorm(input=self.entity_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
         
-        score = torch.norm(score, p=2, dim=2)
-
-        return self.gamma.item() - score*score
+        self.relation_embedding.data.copy_(torch.renorm(input=self.relation_embedding.detach().cpu(),
+                                                            p=2,
+                                                            dim=0,
+                                                            maxnorm=1.0))
+    
