@@ -9,7 +9,7 @@ import torch
 
 from torch.utils.data import DataLoader
 
-from models import KGEModel, ModE, HAKE, TransE, RotatE, UM
+from models import KGEModel, HAKE, TransE, RotatE
 
 from data import TrainDataset, BatchType, ModeType, DataReader
 from data import BidirectionalOneShotIterator
@@ -159,12 +159,8 @@ def main(args):
     logging.info('Num Valid: {}'.format(len(data_reader.valid_data)))
     logging.info('Num Test: {}'.format(len(data_reader.test_data)))
 
-    if args.model == 'ModE':
-        kge_model = ModE(num_entity, num_relation, args.hidden_dim, args.gamma)
-    elif args.model == 'TransE':
+    if args.model == 'TransE':
         kge_model = TransE(num_entity, num_relation, args.hidden_dim, args.gamma)
-    elif args.model == 'UM':
-        kge_model = UM(num_entity, num_relation, args.hidden_dim, args.gamma)
     elif args.model == 'RotatE':
         kge_model = RotatE(num_entity, num_relation, args.hidden_dim, args.gamma)
     elif args.model == 'HAKE':
